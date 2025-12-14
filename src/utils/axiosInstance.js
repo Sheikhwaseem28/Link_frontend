@@ -2,7 +2,7 @@ import axios from "axios";
 
 const axiosInstance = axios.create({
      // baseURL:"http://localhost:3000",
-  baseURL: import.meta.env.VITE_API_URL || "https://link-backend-phi.vercel.app",
+  baseURL: "https://link-backend-phi.vercel.app",
   timeout: 10000, // 10 seconds
   withCredentials: true,
   headers: {

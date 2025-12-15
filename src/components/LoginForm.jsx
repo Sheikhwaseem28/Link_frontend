@@ -21,7 +21,7 @@ const LoginForm = ({ onToggleForm }) => {
         setError('');
 
         try {
-            const data = await loginUser(password, email);
+            const data = await loginUser(email, password);
             dispatch(login(data.user));
             navigate({ to: "/dashboard" });
             console.log("Sign in success");
@@ -39,11 +39,11 @@ const LoginForm = ({ onToggleForm }) => {
     };
 
     return (
-        <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800 p-4 sm:p-6 lg:p-8">
+        <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-gray-800">
             {/* Background Elements */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-1/4 -left-1/4 w-96 h-96 bg-gradient-to-r from-blue-500/5 to-cyan-500/5 rounded-full blur-3xl"></div>
-                <div className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-gradient-to-r from-gray-700/5 to-gray-900/5 rounded-full blur-3xl"></div>
+                <div className="absolute bottom-1/4 -right-1/4 w-96 h-96 bg-gradient-to-br from-gray-700/5 to-gray-900/5 rounded-full blur-3xl"></div>
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-gradient-to-r from-black/10 via-transparent to-black/10 rounded-full blur-3xl"></div>
             </div>
 

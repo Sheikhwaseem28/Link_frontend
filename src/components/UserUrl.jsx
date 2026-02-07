@@ -1,9 +1,15 @@
 import React, { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { getAllUserUrls } from '../api/user.api'
-import { Copy, Link as LinkIcon, ExternalLink, BarChart3, Calendar, Clock, Users, Eye, Trash2, Edit3, QrCode, Shield, Filter, Search, ChevronUp, ChevronDown, RefreshCw } from 'lucide-react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getAllUserUrls, deleteUserUrl } from '../api/user.api'
+import { Copy, Link as LinkIcon, ExternalLink, BarChart3, Calendar, Clock, Users, Eye, Trash2, Edit3, QrCode, Shield, Filter, Search, ChevronUp, ChevronDown, RefreshCw, CheckCircle } from 'lucide-react'
 
 const UserUrl = () => {
+  // Dynamic Backend URL detection
+  // Use Vercel URL for link generation as requested
+  const BACKEND_URL = "https://link-backend-phi.vercel.app";
+
+
+
   const { data: urls, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['userUrls'],
     queryFn: getAllUserUrls,
@@ -22,9 +28,21 @@ const UserUrl = () => {
     setTimeout(() => setCopiedId(null), 2000)
   }
 
+  const queryClient = useQueryClient()
+  const [qrCodeUrl, setQrCodeUrl] = useState(null)
+
+  const deleteMutation = useMutation({
+    mutationFn: deleteUserUrl,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['userUrls'])
+    }
+  })
+
+  // Fixed handleDelete function
   const handleDelete = async (urlId) => {
-    // Implement delete functionality
-    console.log('Delete URL:', urlId)
+    if (window.confirm("Are you sure you want to delete this link?")) {
+      deleteMutation.mutate(urlId)
+    }
   }
 
   const handleEdit = (urlId) => {
@@ -32,14 +50,26 @@ const UserUrl = () => {
     console.log('Edit URL:', urlId)
   }
 
+  // Fixed handleGenerateQR function
   const handleGenerateQR = (urlId) => {
-    // Implement QR code generation
-    console.log('Generate QR for:', urlId)
+    // Find the URL object
+    const url = urls?.urls?.find(u => u._id === urlId);
+    if (url) {
+      const fullShortUrl = `${BACKEND_URL}/${url.short_url}`;
+      // Use a public QR code API
+      const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(fullShortUrl)}`;
+      // Toggle: if clicking same ID, close it. If different, open it.
+      if (qrCodeUrl && qrCodeUrl.id === urlId) {
+        setQrCodeUrl(null);
+      } else {
+        setQrCodeUrl({ id: urlId, url: qrApi });
+      }
+    }
   }
 
   // Filter and sort URLs
   const filteredUrls = urls?.urls
-    ?.filter(url => 
+    ?.filter(url =>
       url.full_url.toLowerCase().includes(searchTerm.toLowerCase()) ||
       url.short_url.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -56,6 +86,7 @@ const UserUrl = () => {
     }) || []
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'Just now';
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', {
       month: 'short',
@@ -121,7 +152,6 @@ const UserUrl = () => {
       {/* Header with Stats and Controls */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white mb-1">Your Links</h2>
           <p className="text-gray-400">
             {filteredUrls.length} {filteredUrls.length === 1 ? 'link' : 'links'} • Total clicks: {filteredUrls.reduce((sum, url) => sum + (url.clicks || 0), 0)}
           </p>
@@ -163,7 +193,7 @@ const UserUrl = () => {
       {/* URLs Grid/List */}
       <div className="grid grid-cols-1 gap-4">
         {filteredUrls.map((url) => (
-          <div 
+          <div
             key={url._id}
             className="bg-gradient-to-br from-gray-800/50 to-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-700/30 overflow-hidden hover:border-gray-600/50 transition-all duration-300"
           >
@@ -187,12 +217,12 @@ const UserUrl = () => {
                       <p className="text-sm text-gray-500 mb-1">Short URL</p>
                       <div className="flex items-center gap-2">
                         <a
-                          href={`http://localhost:3000/${url.short_url}`}
+                          href={`${BACKEND_URL}/${url.short_url}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-cyan-400 hover:text-cyan-300 hover:underline truncate"
                         >
-                          localhost:3000/{url.short_url}
+                          {BACKEND_URL.replace(/^https?:\/\//, '')}/{url.short_url}
                         </a>
                         <ExternalLink className="w-4 h-4 text-gray-500 flex-shrink-0" />
                       </div>
@@ -229,12 +259,11 @@ const UserUrl = () => {
                 {/* Action Buttons */}
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleCopy(`http://localhost:3000/${url.short_url}`, url._id)}
-                    className={`p-2.5 rounded-lg transition-all duration-200 ${
-                      copiedId === url._id
-                        ? 'bg-green-900/30 text-green-400'
-                        : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800'
-                    }`}
+                    onClick={() => handleCopy(`${BACKEND_URL}/${url.short_url}`, url._id)}
+                    className={`p-2.5 rounded-lg transition-all duration-200 ${copiedId === url._id
+                      ? 'bg-green-900/30 text-green-400'
+                      : 'bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800'
+                      }`}
                     title={copiedId === url._id ? 'Copied!' : 'Copy URL'}
                   >
                     {copiedId === url._id ? (
@@ -262,6 +291,21 @@ const UserUrl = () => {
             {/* Expanded Details */}
             {expandedId === url._id && (
               <div className="border-t border-gray-700/30 bg-gray-900/30 p-5 animate-slideDown">
+
+                {/* QR Code Display */}
+                {qrCodeUrl && qrCodeUrl.id === url._id && (
+                  <div className="mb-6 flex flex-col items-center justify-center p-4 bg-white/5 rounded-xl border border-white/10">
+                    <p className="text-gray-300 mb-2 font-medium">Scan QR Code</p>
+                    <img src={qrCodeUrl.url} alt="QR Code" className="w-32 h-32 rounded-lg border-4 border-white" />
+                    <button
+                      onClick={() => setQrCodeUrl(null)}
+                      className="mt-2 text-xs text-gray-400 hover:text-white underline"
+                    >
+                      Close QR
+                    </button>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Analytics */}
                   <div className="space-y-4">
@@ -304,7 +348,7 @@ const UserUrl = () => {
                         <span className="text-xs">QR Code</span>
                       </button>
                       <button
-                        onClick={() => window.open(`http://localhost:3000/${url.short_url}`, '_blank')}
+                        onClick={() => window.open(`${BACKEND_URL}/${url.short_url}`, '_blank')}
                         className="p-2.5 bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200 flex flex-col items-center justify-center gap-1"
                       >
                         <ExternalLink className="w-4 h-4" />
@@ -325,14 +369,14 @@ const UserUrl = () => {
                     <h4 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Share</h4>
                     <div className="space-y-2">
                       <button
-                        onClick={() => handleCopy(`http://localhost:3000/${url.short_url}`, url._id)}
+                        onClick={() => handleCopy(`${BACKEND_URL}/${url.short_url}`, url._id)}
                         className="w-full p-2.5 bg-blue-900/20 text-blue-400 hover:text-blue-300 hover:bg-blue-900/30 rounded-lg transition-all duration-200 text-sm"
                       >
                         Copy Link to Clipboard
                       </button>
                       <button
                         onClick={() => {
-                          const text = `Check out this link: http://localhost:3000/${url.short_url}`;
+                          const text = `Check out this link: ${BACKEND_URL}/${url.short_url}`;
                           navigator.clipboard.writeText(text);
                         }}
                         className="w-full p-2.5 bg-gray-800/50 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-all duration-200 text-sm"

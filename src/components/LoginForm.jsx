@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { loginUser } from '../api/user.api';
 import { useDispatch, useSelector } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 import { login } from '../store/slice/authSlice.js';
 import { useNavigate } from '@tanstack/react-router';
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowRight, Link as LinkIcon, Zap, BarChart3, Shield } from 'lucide-react';
@@ -14,6 +15,7 @@ const LoginForm = ({ onToggleForm }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const auth = useSelector((state) => state.auth);
+    const queryClient = useQueryClient();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -23,6 +25,7 @@ const LoginForm = ({ onToggleForm }) => {
         try {
             const data = await loginUser(email, password);
             dispatch(login(data.user));
+            queryClient.invalidateQueries(['currentUser']);
             navigate({ to: "/dashboard" });
             console.log("Sign in success");
         } catch (err) {
@@ -35,6 +38,26 @@ const LoginForm = ({ onToggleForm }) => {
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && email && password && !loading) {
             handleSubmit(e);
+        }
+    };
+
+    const handleDemoLogin = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            // Pre-fill for visual feedback (optional)
+            setEmail('demo@gmail.com');
+            setPassword('123456');
+
+            const data = await loginUser('demo@gmail.com', '123456');
+            dispatch(login(data.user));
+            queryClient.invalidateQueries(['currentUser']);
+            navigate({ to: "/dashboard" });
+            console.log("Demo sign in success");
+        } catch (err) {
+            setError(err.message || 'Demo login failed. Please try again.');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -62,16 +85,16 @@ const LoginForm = ({ onToggleForm }) => {
                                 <p className="text-gray-400 mt-2">Professional URL Shortener</p>
                             </div>
                         </div>
-                        
+
                         <h2 className="text-4xl font-bold text-white mb-6">
                             Shorten Links,<br />
                             <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                                 Amplify Results
                             </span>
                         </h2>
-                        
+
                         <p className="text-gray-400 text-lg leading-relaxed mb-10 max-w-xl">
-                            Transform long URLs into short, memorable links with powerful analytics, 
+                            Transform long URLs into short, memorable links with powerful analytics,
                             custom branding, and enterprise-grade security.
                         </p>
                     </div>
@@ -87,7 +110,7 @@ const LoginForm = ({ onToggleForm }) => {
                                 <p className="text-gray-400 text-sm">Instant URL shortening & redirection</p>
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-4 p-4 bg-gray-900/30 backdrop-blur-sm rounded-xl border border-gray-700/50">
                             <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-black rounded-lg flex items-center justify-center">
                                 <BarChart3 className="w-6 h-6 text-cyan-400" />
@@ -97,7 +120,7 @@ const LoginForm = ({ onToggleForm }) => {
                                 <p className="text-gray-400 text-sm">Track clicks, locations, and devices</p>
                             </div>
                         </div>
-                        
+
                         <div className="flex items-center gap-4 p-4 bg-gray-900/30 backdrop-blur-sm rounded-xl border border-gray-700/50">
                             <div className="w-12 h-12 bg-gradient-to-br from-gray-800 to-black rounded-lg flex items-center justify-center">
                                 <Shield className="w-6 h-6 text-green-400" />
@@ -108,7 +131,7 @@ const LoginForm = ({ onToggleForm }) => {
                             </div>
                         </div>
                     </div>
-                    
+
                     <div className="mt-12 flex items-center gap-6 text-gray-500">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -247,13 +270,23 @@ const LoginForm = ({ onToggleForm }) => {
                                     </label>
                                 </div>
 
+                                {/* Demo Login Button */}
+                                <button
+                                    type="button"
+                                    onClick={handleDemoLogin}
+                                    className="w-full py-3 px-6 rounded-xl font-semibold text-base bg-gray-800 hover:bg-gray-700 text-blue-400 border border-gray-700 hover:border-blue-500/30 transition-all duration-300 flex items-center justify-center gap-2 mb-4"
+                                    disabled={loading}
+                                >
+                                    <Zap className="w-5 h-5" />
+                                    <span>Demo Login</span>
+                                </button>
+
                                 {/* Submit Button */}
                                 <button
-                                    className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center gap-3 group ${
-                                        loading || !email || !password
-                                            ? 'bg-gray-800 cursor-not-allowed text-gray-400'
-                                            : 'bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white shadow-xl hover:shadow-2xl hover:shadow-blue-500/20 border-2 border-gray-700 hover:border-blue-500/50 hover:scale-[1.02]'
-                                    }`}
+                                    className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center gap-3 group ${loading || !email || !password
+                                        ? 'bg-gray-800 cursor-not-allowed text-gray-400'
+                                        : 'bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white shadow-xl hover:shadow-2xl hover:shadow-blue-500/20 border-2 border-gray-700 hover:border-blue-500/50 hover:scale-[1.02]'
+                                        }`}
                                     type="submit"
                                     disabled={loading || !email || !password}
                                 >
@@ -271,37 +304,6 @@ const LoginForm = ({ onToggleForm }) => {
                                 </button>
                             </form>
 
-                            {/* Divider */}
-                            <div className="relative my-10">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-gray-700/50"></div>
-                                </div>
-                                <div className="relative flex justify-center">
-                                    <span className="px-6 bg-gray-900/80 text-gray-500 text-sm">Or continue with</span>
-                                </div>
-                            </div>
-
-                            {/* Social Login */}
-                            <div className="grid grid-cols-2 gap-4 mb-10">
-                                <button
-                                    className="py-3.5 px-4 bg-gray-900/40 hover:bg-gray-800/60 rounded-xl border-2 border-gray-700/50 transition-all duration-200 group hover:scale-[1.02]"
-                                    disabled={loading}
-                                >
-                                    <div className="flex items-center justify-center gap-3">
-                                        <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded"></div>
-                                        <span className="text-gray-300 font-medium">Google</span>
-                                    </div>
-                                </button>
-                                <button
-                                    className="py-3.5 px-4 bg-gray-900/40 hover:bg-gray-800/60 rounded-xl border-2 border-gray-700/50 transition-all duration-200 group hover:scale-[1.02]"
-                                    disabled={loading}
-                                >
-                                    <div className="flex items-center justify-center gap-3">
-                                        <div className="w-6 h-6 bg-gradient-to-br from-gray-100 to-gray-300 rounded"></div>
-                                        <span className="text-gray-300 font-medium">GitHub</span>
-                                    </div>
-                                </button>
-                            </div>
 
                             {/* Register Link */}
                             <div className="text-center">

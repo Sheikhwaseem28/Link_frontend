@@ -10,16 +10,20 @@ import { Provider } from 'react-redux'
 export const queryClient = new QueryClient()
 const router = createRouter({
   routeTree,
-  context:{
+  context: {
     queryClient,
     store
   }
 })
 
-createRoot(document.getElementById('root')).render(
-  <Provider store={store}>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  </Provider>
-)
+const rootElement = document.getElementById('root')
+if (!rootElement.innerHTML) {
+  const root = createRoot(rootElement)
+  root.render(
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>
+    </Provider>
+  )
+}

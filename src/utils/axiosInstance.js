@@ -3,7 +3,7 @@ import axios from "axios";
 const axiosInstance = axios.create({
   // baseURL is not needed when using Vite Proxy (requests go to /api/...)
   // baseURL: "http://localhost:3000",
-  baseURL: "https://link-backend-phi.vercel.app",
+  baseURL: "https://link-backend-flame.vercel.app",
   timeout: 10000, // 10 seconds
   withCredentials: true,
   headers: {

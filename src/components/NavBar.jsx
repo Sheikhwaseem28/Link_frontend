@@ -35,6 +35,7 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       await logoutUser();
+      localStorage.removeItem("token"); // Clear token
       dispatch(logout());
       navigate({ to: '/' });
       setIsUserMenuOpen(false);

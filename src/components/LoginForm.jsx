@@ -24,6 +24,7 @@ const LoginForm = ({ onToggleForm }) => {
 
         try {
             const data = await loginUser(email, password);
+            localStorage.setItem("token", data.token); // Save token
             dispatch(login(data.user));
             queryClient.invalidateQueries(['currentUser']);
             navigate({ to: "/dashboard" });
@@ -50,6 +51,7 @@ const LoginForm = ({ onToggleForm }) => {
             setPassword('123456');
 
             const data = await loginUser('demo@gmail.com', '123456');
+            localStorage.setItem("token", data.token); // Save token
             dispatch(login(data.user));
             queryClient.invalidateQueries(['currentUser']);
             navigate({ to: "/dashboard" });

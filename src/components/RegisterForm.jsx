@@ -398,40 +398,6 @@ const RegisterForm = ({ onToggleForm }) => {
                 </button>
               </form>
 
-              {/* Divider */}
-              <div className="relative my-10">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-700/50"></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="px-6 bg-gray-900/80 text-gray-500 text-sm">Or sign up with</span>
-                </div>
-              </div>
-
-              {/* Social Sign Up */}
-              <div className="grid grid-cols-2 gap-4 mb-10">
-                <button
-                  className="py-3.5 px-4 bg-gray-900/40 hover:bg-gray-800/60 rounded-xl border-2 border-gray-700/50 transition-all duration-200 group hover:scale-[1.02]"
-                  disabled={loading}
-                  type="button"
-                >
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-6 h-6 bg-gradient-to-br from-blue-400 to-blue-600 rounded"></div>
-                    <span className="text-gray-300 font-medium">Google</span>
-                  </div>
-                </button>
-                <button
-                  className="py-3.5 px-4 bg-gray-900/40 hover:bg-gray-800/60 rounded-xl border-2 border-gray-700/50 transition-all duration-200 group hover:scale-[1.02]"
-                  disabled={loading}
-                  type="button"
-                >
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-6 h-6 bg-gradient-to-br from-gray-100 to-gray-300 rounded"></div>
-                    <span className="text-gray-300 font-medium">GitHub</span>
-                  </div>
-                </button>
-              </div>
-
               {/* Login Link */}
               <div className="text-center">
                 <p className="text-gray-400">

@@ -5,8 +5,7 @@ import { Copy, Link as LinkIcon, ExternalLink, BarChart3, Calendar, Clock, Users
 
 const UserUrl = () => {
   // Dynamic Backend URL detection
-  // Use Vercel URL for link generation as requested
-  const BACKEND_URL = "https://link-backend-phi.vercel.app";
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://link-backend-phi.vercel.app";
 
 
 

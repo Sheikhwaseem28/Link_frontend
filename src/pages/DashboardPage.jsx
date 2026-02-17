@@ -1,16 +1,35 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getAllUserUrls } from '../api/user.api';
+import { getAllUserUrls, getCurrentUser } from '../api/user.api';
+import { useNavigate } from '@tanstack/react-router';
 import UrlForm from '../components/UrlForm';
 import UserUrl from '../components/UserUrl';
 import { Link as LinkIcon, BarChart3, Zap, TrendingUp, ExternalLink, Clock } from 'lucide-react';
 
 const DashboardPage = () => {
-  const { data: urls } = useQuery({
+  const navigate = useNavigate();
+  const { data: userData, isLoading: isAuthLoading } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: getCurrentUser,
+    retry: false,
+  });
+
+  React.useEffect(() => {
+    if (!isAuthLoading && !userData?.user) {
+      navigate({ to: '/auth' });
+    }
+  }, [isAuthLoading, userData, navigate]);
+
+  const { data: urls, isLoading: isUrlsLoading } = useQuery({
     queryKey: ['userUrls'],
     queryFn: getAllUserUrls,
     staleTime: 0,
+    enabled: !!userData?.user, // Only fetch URLs if user is logged in
   });
+
+  if (isAuthLoading) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">Loading...</div>;
+  }
 
   const userUrls = urls?.urls || [];
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 import { Menu, X, Link as LinkIcon, User, ChevronDown, LogIn, UserPlus, Home, LogOut } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCurrentUser, logoutUser } from '../api/user.api';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout, login } from '../store/slice/authSlice';
@@ -32,6 +32,8 @@ const Navbar = () => {
   const user = reduxUser || userData?.user;
   const isAuthenticated = !!user;
 
+  const queryClient = useQueryClient();
+
   const handleLogout = async () => {
     try {
       await logoutUser();
@@ -39,6 +41,7 @@ const Navbar = () => {
       console.error("Logout failed", error);
     } finally {
       localStorage.removeItem("token"); // Clear token
+      queryClient.clear(); // Clear all RQ cache
       dispatch(logout());
       navigate({ to: '/' });
       setIsUserMenuOpen(false);

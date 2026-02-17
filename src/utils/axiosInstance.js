@@ -3,7 +3,7 @@ import axios from "axios";
 const axiosInstance = axios.create({
   // baseURL is not needed when using Vite Proxy (requests go to /api/...)
   // But we are using it here for direct access if needed or if proxy isn't set up
-  baseURL: import.meta.env.VITE_BACKEND_URL || "https://link-backend-phi.vercel.app",
+  baseURL: import.meta.env.VITE_BACKEND_URL || "https://link-backend-flame.vercel.app",
   headers: {
     "Content-Type": "application/json"
   }

@@ -31,7 +31,7 @@ const DashboardPage = () => {
   // Assuming the API returns them sorted, or we sort them here if needed. 
   // The API `getUrlsByUserId` usually sorts by createdAt -1.
   const recentActivities = userUrls.slice(0, 5);
-  const BACKEND_URL = "https://link-backend-phi.vercel.app"; // Consistent with UserUrl.jsx
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://link-backend-flame.vercel.app";
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
